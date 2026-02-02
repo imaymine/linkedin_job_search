@@ -252,7 +252,21 @@ def start_server(port=5000):
     """
     csv_file = "job_listings.csv"
     run_rn = not os.path.exists(csv_file)
+    last_run_file = "last_run.txt"
+    run_rn = False
+    if not os.path.exists(csv_file):
+        run_rn = True
+    elif not os.path.exists(last_run_file):
+        run_rn = True
+    else:
+        with open(last_run_file, 'r') as f:
+            last_run_str = f.read().strip()
+            last_run_dt = datetime.fromisoformat(last_run_str)
+            time_since = datetime.now() - last_run_dt
+            if time_since.total_seconds() > (scheduler.interval * 3600):
+                run_rn = True
     scheduler.start(run_on_init=run_rn)
+    # scheduler.start(run_on_init=True)
     try:
         app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
     finally:
